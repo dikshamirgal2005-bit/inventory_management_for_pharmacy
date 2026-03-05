@@ -1,0 +1,9 @@
+.modal-body .form-control.error {
+    border-color: var(--danger);
+}
+
+.field-error {
+    font-size: 0.75rem;
+    color: var(--danger);
+    margin-top: 2px;
+}

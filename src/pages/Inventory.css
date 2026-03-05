@@ -1,0 +1,67 @@
+.row-num {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.med-name {
+    font-weight: 600;
+    font-size: 0.88rem;
+}
+
+.med-meta {
+    font-size: 0.73rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.qty-val {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.qty-val.qty-low {
+    color: var(--danger);
+}
+
+.qty-unit {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.expiry-cell {
+    font-size: 0.82rem;
+    font-weight: 500;
+}
+
+.expiry-cell.expiry-expired {
+    color: var(--danger);
+    font-weight: 700;
+}
+
+.expiry-cell.expiry-soon {
+    color: var(--warning);
+}
+
+.expiry-cell.expiry-safe {
+    color: var(--text-secondary);
+}
+
+.action-btns {
+    display: flex;
+    gap: 6px;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+}
+
+.page-info {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
