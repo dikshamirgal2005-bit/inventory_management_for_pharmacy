@@ -65,3 +65,42 @@
     color: var(--text-secondary);
     font-weight: 500;
 }
+
+/* Location badge */
+.location-badge {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+    padding: 2px 7px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+/* 50% stock level column */
+.half-level-badge {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.half-level-ok {
+    color: var(--success);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.half-level-warn {
+    color: var(--warning);
+    background: rgba(245, 158, 11, 0.12);
+}
+
+/* Clickable status badges */
+.clickable-badge {
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+}
+
+.clickable-badge:hover {
+    opacity: 0.8;
+    transform: scale(1.06);
+}

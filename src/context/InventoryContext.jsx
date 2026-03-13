@@ -1,18 +1,26 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { sampleMedicines, sampleSuppliers } from '../data/sampleData';
+import { sampleMedicines, sampleSuppliers, sampleOrders } from '../data/sampleData';
 
 const InventoryContext = createContext();
 
 const initialState = {
     medicines: [],
     suppliers: [],
+    orders: [],
     toast: null,
 };
+
+const ORDER_FLOW = ['Ordered', 'Dispatched', 'In Transit', 'Delivered'];
 
 function reducer(state, action) {
     switch (action.type) {
         case 'INIT':
-            return { ...state, medicines: action.medicines, suppliers: action.suppliers };
+            return {
+                ...state,
+                medicines: action.medicines,
+                suppliers: action.suppliers,
+                orders: action.orders,
+            };
 
         case 'ADD_MEDICINE':
             return { ...state, medicines: [action.medicine, ...state.medicines] };
@@ -26,6 +34,16 @@ function reducer(state, action) {
         case 'DELETE_MEDICINE':
             return { ...state, medicines: state.medicines.filter(m => m.id !== action.id) };
 
+        case 'DISPENSE_MEDICINE':
+            return {
+                ...state,
+                medicines: state.medicines.map(m =>
+                    m.id === action.id
+                        ? { ...m, qty: Math.max(0, m.qty - action.qty) }
+                        : m
+                ),
+            };
+
         case 'ADD_SUPPLIER':
             return { ...state, suppliers: [action.supplier, ...state.suppliers] };
 
@@ -37,6 +55,30 @@ function reducer(state, action) {
 
         case 'DELETE_SUPPLIER':
             return { ...state, suppliers: state.suppliers.filter(s => s.id !== action.id) };
+
+        case 'ADD_ORDER':
+            return { ...state, orders: [action.order, ...state.orders] };
+
+        case 'UPDATE_ORDER_STATUS': {
+            const targetOrder = state.orders.find(o => o.id === action.id);
+            if (!targetOrder) return state;
+            const nextIdx = ORDER_FLOW.indexOf(targetOrder.status) + 1;
+            if (nextIdx >= ORDER_FLOW.length) return state;
+            const nextStatus = ORDER_FLOW[nextIdx];
+            const updatedOrders = state.orders.map(o =>
+                o.id === action.id ? { ...o, status: nextStatus } : o
+            );
+            // Auto-restock medicine when Delivered
+            let updatedMedicines = state.medicines;
+            if (nextStatus === 'Delivered' && targetOrder.medicineId) {
+                updatedMedicines = state.medicines.map(m =>
+                    m.id === targetOrder.medicineId
+                        ? { ...m, qty: m.qty + targetOrder.qty }
+                        : m
+                );
+            }
+            return { ...state, orders: updatedOrders, medicines: updatedMedicines };
+        }
 
         case 'SHOW_TOAST':
             return { ...state, toast: action.toast };
@@ -56,10 +98,12 @@ export function InventoryProvider({ children }) {
     useEffect(() => {
         const storedMeds = localStorage.getItem('pharma_medicines');
         const storedSups = localStorage.getItem('pharma_suppliers');
+        const storedOrders = localStorage.getItem('pharma_orders');
         dispatch({
             type: 'INIT',
             medicines: storedMeds ? JSON.parse(storedMeds) : sampleMedicines,
             suppliers: storedSups ? JSON.parse(storedSups) : sampleSuppliers,
+            orders: storedOrders ? JSON.parse(storedOrders) : sampleOrders,
         });
     }, []);
 
@@ -73,6 +117,11 @@ export function InventoryProvider({ children }) {
         if (state.suppliers.length > 0)
             localStorage.setItem('pharma_suppliers', JSON.stringify(state.suppliers));
     }, [state.suppliers]);
+
+    useEffect(() => {
+        if (state.orders.length > 0)
+            localStorage.setItem('pharma_orders', JSON.stringify(state.orders));
+    }, [state.orders]);
 
     // Toast auto-dismiss
     useEffect(() => {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { PieChart, Pie, Cell, Tooltip as PieTooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as BarTooltip } from 'recharts';
 import StatCard from '../components/StatCard';
 import { useInventory } from '../context/InventoryContext';
 import './Dashboard.css';
@@ -12,6 +13,31 @@ export default function Dashboard() {
 
     const formatCurrency = (v) => '₹' + Number(v).toLocaleString('en-IN', { minimumFractionDigits: 2 });
 
+    // --- Chart Data Processing ---
+
+    // 1. Stock Status Pie Chart
+    let healthy = 0;
+    medicines.forEach(m => {
+        if (m.qty > m.reorderLevel) healthy++;
+    });
+
+    const stockStatusData = [
+        { name: 'Healthy Stock', value: healthy, color: '#10b981' }, // green
+        { name: 'Low Stock', value: stats.lowStock, color: '#f59e0b' }, // warning/yellow
+        { name: 'Expired', value: stats.expired, color: '#ef4444' } // danger/red
+    ].filter(d => d.value > 0); // only show portions that have values
+
+    // 2. Weekly Stock Movement (Mock Data for Hackathon presentation showing trend)
+    const weeklyActivityData = [
+        { day: 'Mon', supplied: 45, dispensed: 60 },
+        { day: 'Tue', supplied: 100, dispensed: 40 },
+        { day: 'Wed', supplied: 20, dispensed: 85 },
+        { day: 'Thu', supplied: 0, dispensed: 45 },
+        { day: 'Fri', supplied: 150, dispensed: 90 },
+        { day: 'Sat', supplied: 30, dispensed: 110 },
+        { day: 'Sun', supplied: 0, dispensed: 30 },
+    ];
+
     return (
         <div className="page">
             {/* Stat Cards */}
@@ -23,6 +49,67 @@ export default function Dashboard() {
                 {stats.expired > 0 && (
                     <StatCard icon="🚫" label="Expired" value={stats.expired} color="purple" sub="remove immediately" />
                 )}
+            </div>
+
+            {/* Charts Section */}
+            <div className="dashboard-grid charts-section" style={{ marginBottom: '20px' }}>
+                {/* Stock Status Pie Chart */}
+                <div className="card">
+                    <div className="card-header">
+                        <span className="card-title">📊 Inventory Status</span>
+                    </div>
+                    <div className="card-body" style={{ height: '300px', padding: '10px' }}>
+                        {stockStatusData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={stockStatusData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={90}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                    >
+                                        {stockStatusData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <PieTooltip
+                                        formatter={(value) => [`${value} items`, 'Count']}
+                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                    />
+                                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="empty-state">No inventory data available</div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Weekly Activity Bar Chart */}
+                <div className="card">
+                    <div className="card-header">
+                        <span className="card-title">📈 Weekly Pharmacy Activity</span>
+                    </div>
+                    <div className="card-body" style={{ height: '300px', padding: '10px 20px 10px 0' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={weeklyActivityData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
+                                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888' }} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#888' }} />
+                                <BarTooltip
+                                    cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                />
+                                <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ paddingBottom: '10px' }} />
+                                <Bar dataKey="supplied" name="Stock Added" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={12} />
+                                <Bar dataKey="dispensed" name="Stock Dispensed" fill="#10b981" radius={[4, 4, 0, 0]} barSize={12} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
             </div>
 
             {/* Two-column section */}

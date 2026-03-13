@@ -90,3 +90,47 @@
   flex: 1;
   overflow-y: auto;
 }
+
+/* ---- Hamburger Toggle Button ---- */
+.hamburger-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  color: var(--text-primary);
+  margin-right: 12px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.hamburger-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* ---- Mobile Responsiveness ---- */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
+
+  .hamburger-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .top-header {
+    padding: 0 16px;
+  }
+
+  .header-left {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .header-date {
+    display: none;
+  }
+}

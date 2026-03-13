@@ -4,7 +4,7 @@ import './MedicineModal.css';
 
 const empty = {
     name: '', category: CATEGORIES[0], qty: '', unit: UNITS[0],
-    price: '', reorderLevel: '', expiryDate: '', supplier: '', batchNo: '',
+    price: '', reorderLevel: '', expiryDate: '', supplier: '', batchNo: '', location: '',
 };
 
 export default function MedicineModal({ medicine, suppliers, onSave, onClose }) {
@@ -127,6 +127,13 @@ export default function MedicineModal({ medicine, suppliers, onSave, onClose }) 
                                     placeholder="e.g. BT2024001" />
                                 {errors.batchNo && <span className="field-error">{errors.batchNo}</span>}
                             </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label>📦 Shelf / Location</label>
+                            <input className="form-control"
+                                name="location" value={form.location || ''} onChange={handleChange}
+                                placeholder="e.g. Shelf A1, Cabinet 3" />
                         </div>
                     </div>
 

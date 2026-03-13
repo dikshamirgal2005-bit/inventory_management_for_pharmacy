@@ -15,6 +15,9 @@ export default function Inventory() {
     const [editMed, setEditMed] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
+    const [dispenseTarget, setDispenseTarget] = useState(null);
+    const [dispenseQty, setDispenseQty] = useState('');
+    const [dispenseCustomer, setDispenseCustomer] = useState('');
     const PER_PAGE = 10;
 
     const filtered = useMemo(() => {
@@ -24,7 +27,7 @@ export default function Inventory() {
                 m.batchNo.toLowerCase().includes(search.toLowerCase());
             const matchCat = !catFilter || m.category === catFilter;
             const matchStock = !stockFilter || (
-                stockFilter === 'low' ? m.qty <= m.reorderLevel :
+                stockFilter === 'low' ? (m.qty <= m.reorderLevel && getExpiryStatus(m.expiryDate) === 'safe') :
                     stockFilter === 'expired' ? getExpiryStatus(m.expiryDate) === 'expired' :
                         stockFilter === 'soon' ? getExpiryStatus(m.expiryDate) === 'soon' : true
             );
@@ -54,6 +57,21 @@ export default function Inventory() {
         dispatch({ type: 'DELETE_MEDICINE', id });
         showToast('Medicine deleted.', 'danger');
         setDeleteConfirm(null);
+    };
+
+    const openDispense = (m) => {
+        setDispenseTarget(m);
+        setDispenseQty('');
+        setDispenseCustomer('');
+    };
+
+    const handleDispense = () => {
+        const qty = parseInt(dispenseQty, 10);
+        if (!qty || qty <= 0) { showToast('Enter a valid quantity.', 'danger'); return; }
+        if (qty > dispenseTarget.qty) { showToast('Not enough stock available!', 'danger'); return; }
+        dispatch({ type: 'DISPENSE_MEDICINE', id: dispenseTarget.id, qty });
+        showToast(`✅ Dispensed ${qty} ${dispenseTarget.unit} of ${dispenseTarget.name}${dispenseCustomer ? ` to ${dispenseCustomer}` : ''}`);
+        setDispenseTarget(null);
     };
 
     const formatCurrency = (v) => '₹' + Number(v).toFixed(2);
@@ -96,7 +114,9 @@ export default function Inventory() {
                                 <th>#</th>
                                 <th>Medicine</th>
                                 <th>Category</th>
+                                <th>Location</th>
                                 <th>Qty</th>
+                                <th>50% Level</th>
                                 <th>Price</th>
                                 <th>Expiry</th>
                                 <th>Status</th>
@@ -105,7 +125,7 @@ export default function Inventory() {
                         </thead>
                         <tbody>
                             {paginated.length === 0 ? (
-                                <tr><td colSpan={8}>
+                                <tr><td colSpan={10}>
                                     <div className="empty-state">
                                         <div className="empty-icon">💊</div>
                                         <strong>No medicines found</strong>
@@ -115,6 +135,8 @@ export default function Inventory() {
                             ) : paginated.map((m, i) => {
                                 const expStatus = getExpiryStatus(m.expiryDate);
                                 const isLow = m.qty <= m.reorderLevel;
+                                const halfLevel = Math.ceil(m.reorderLevel * 0.5);
+                                const isBelowHalf = m.qty <= halfLevel && m.qty > 0;
                                 return (
                                     <tr key={m.id}>
                                         <td className="row-num">{(currentPage - 1) * PER_PAGE + i + 1}</td>
@@ -124,21 +146,34 @@ export default function Inventory() {
                                         </td>
                                         <td><span className="badge badge-secondary">{m.category}</span></td>
                                         <td>
+                                            <span className="location-badge">📦 {m.location || '—'}</span>
+                                        </td>
+                                        <td>
                                             <span className={`qty-val ${isLow ? 'qty-low' : ''}`}>{m.qty}</span>
                                             <span className="qty-unit"> / {m.reorderLevel} min</span>
+                                        </td>
+                                        <td>
+                                            <span className={`half-level-badge ${isBelowHalf ? 'half-level-warn' : 'half-level-ok'}`}>
+                                                {halfLevel}
+                                                {isBelowHalf && <span title="Stock below 50% level"> ⚠️</span>}
+                                            </span>
                                         </td>
                                         <td>{formatCurrency(m.price)}</td>
                                         <td>
                                             <div className={`expiry-cell expiry-${expStatus}`}>{m.expiryDate}</div>
                                         </td>
                                         <td>
-                                            {expStatus === 'expired' ? <span className="badge badge-danger">Expired</span>
-                                                : expStatus === 'soon' ? <span className="badge badge-warning">Expiring Soon</span>
-                                                    : isLow ? <span className="badge badge-danger">Low Stock</span>
+                                            {expStatus === 'expired'
+                                                ? <span className="badge badge-danger clickable-badge" title="Filter: Expired" onClick={() => { setStockFilter('expired'); setCurrentPage(1); }}>Expired</span>
+                                                : expStatus === 'soon'
+                                                    ? <span className="badge badge-warning clickable-badge" title="Filter: Expiring Soon" onClick={() => { setStockFilter('soon'); setCurrentPage(1); }}>Expiring Soon</span>
+                                                    : isLow
+                                                        ? <span className="badge badge-danger clickable-badge" title="Show only Low Stock" onClick={() => { setStockFilter('low'); setCurrentPage(1); }}>Low Stock</span>
                                                         : <span className="badge badge-success">OK</span>}
                                         </td>
                                         <td>
                                             <div className="action-btns">
+                                                <button className="btn btn-ghost btn-icon btn-sm" title="Dispense to Customer" onClick={() => openDispense(m)}>💊</button>
                                                 <button className="btn btn-ghost btn-icon btn-sm" title="Edit" onClick={() => openEdit(m)}>✏️</button>
                                                 <button className="btn btn-danger btn-icon btn-sm" title="Delete" onClick={() => setDeleteConfirm(m.id)}>🗑️</button>
                                             </div>
@@ -161,6 +196,42 @@ export default function Inventory() {
                     </div>
                 )}
             </div>
+
+            {/* Dispense Modal */}
+            {dispenseTarget && (
+                <div className="modal-overlay" onClick={() => setDispenseTarget(null)}>
+                    <div className="modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2 className="modal-title">💊 Dispense Medicine</h2>
+                            <button className="modal-close" onClick={() => setDispenseTarget(null)}>✕</button>
+                        </div>
+                        <div className="modal-body">
+                            <div style={{ marginBottom: '1rem', padding: '0.75rem 1rem', background: 'var(--bg-tertiary)', borderRadius: '8px' }}>
+                                <strong>{dispenseTarget.name}</strong>
+                                <div style={{ fontSize: '0.83rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                                    Available: <strong style={{ color: dispenseTarget.qty <= dispenseTarget.reorderLevel ? 'var(--danger)' : 'var(--success)' }}>{dispenseTarget.qty} {dispenseTarget.unit}</strong>
+                                    &nbsp;· Location: {dispenseTarget.location || '—'}
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label>Customer Name (optional)</label>
+                                <input className="form-control" placeholder="e.g. Ramesh Kumar"
+                                    value={dispenseCustomer} onChange={e => setDispenseCustomer(e.target.value)} />
+                            </div>
+                            <div className="form-group">
+                                <label>Quantity to Dispense *</label>
+                                <input className="form-control" type="number" min="1" max={dispenseTarget.qty}
+                                    placeholder={`Max: ${dispenseTarget.qty}`}
+                                    value={dispenseQty} onChange={e => setDispenseQty(e.target.value)} />
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-ghost" onClick={() => setDispenseTarget(null)}>Cancel</button>
+                            <button className="btn btn-primary" onClick={handleDispense}>✅ Confirm Dispense</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Delete confirm */}
             {deleteConfirm && (
