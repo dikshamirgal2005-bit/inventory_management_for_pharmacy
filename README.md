@@ -2,6 +2,8 @@
 
 A smart, modern, and intuitive inventory management dashboard built specifically for pharmacies to prevent stockouts, manage expiry dates, and handle emergency medicine requests.
 
+🚀 **Live Demo:** [https://inventory-management-for-pharmacy.vercel.app/](https://inventory-management-for-pharmacy.vercel.app/)
+
 ---
 
 ## 🛑 Problem Statement (PS)
@@ -45,7 +47,7 @@ Follow these steps to run the application on your local machine:
 
 1. **Clone the repository:**
    ```bash
-   git clone [your-repo-link]
+   git clone https://github.com/dikshamirgal2005-bit/inventory_management_for_pharmacy.git
    cd inventory_pharmacy
    ```
 
@@ -80,3 +82,5 @@ Follow these steps to run the application on your local machine:
    - Click the red `🚨 Emergency – Find Nearby Store` button.
    - Select a nearby pharmacy, click `Request Medicine`, and fill out the itemized form to simulate an emergency restock request.
 5. **Clear Expired Stock:** Navigate to the `Expiry Tracker` to identify and remove any medicines highlighted in red.
+
+
