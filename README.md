@@ -1,5 +1,5 @@
 # 🏥 PharmaCare Inventory System
-
+# Team Yugma
 A smart, modern, and intuitive inventory management dashboard built specifically for pharmacies to prevent stockouts, manage expiry dates, and handle emergency medicine requests.
 
 🚀 **Live Demo:** [https://inventory-management-for-pharmacy.vercel.app/](https://inventory-management-for-pharmacy.vercel.app/)
